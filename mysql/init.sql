@@ -1,7 +1,6 @@
 CREATE DATABASE IF NOT EXISTS jira_db;
 USE jira_db;
 
--- -------- JSM TABLE --------
 CREATE TABLE IF NOT EXISTS jsm_open_issues (
   issuekey VARCHAR(20) PRIMARY KEY,
   issuetype VARCHAR(50),
@@ -45,10 +44,9 @@ CREATE TABLE IF NOT EXISTS jsm_open_issues (
   expected_resolution DATETIME,
   services VARCHAR(255),
   service_impact VARCHAR(100),
-  last_refreshed_at DATETIME
+  last_refreshed_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- -------- JIRA TABLE --------
 CREATE TABLE IF NOT EXISTS jira_open_issues (
   issuekey VARCHAR(20) PRIMARY KEY,
   summary TEXT,
@@ -102,5 +100,5 @@ CREATE TABLE IF NOT EXISTS jira_open_issues (
   known_issue VARCHAR(100),
   five_why TEXT,
   validator_approved VARCHAR(50),
-  last_refreshed_at DATETIME
+  last_refreshed_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
