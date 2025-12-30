@@ -39,6 +39,17 @@ FIELDS = [
 ]
 
 # ---------------- HELPERS ----------------
+
+def parse_jira_datetime(value):
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z") \
+            .astimezone(tz=None) \
+            .replace(tzinfo=None)
+    except Exception:
+        return None
+
 def option(val):
     if isinstance(val, dict):
         return val.get("value")
@@ -112,14 +123,15 @@ def load_to_db(issues):
                 %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
                 %s,%s,%s,%s,%s,%s,%s,%s)
         """
-
+        
         for i in issues:
             f = i["fields"]
             cursor.execute(insert_sql, (
                 i["key"], f.get("summary"),
                 f["status"]["name"] if f.get("status") else None,
                 user(f.get("assignee")), user(f.get("reporter")),
-                f.get("created"), f.get("updated"),
+                parse_jira_datetime(f.get("created")),
+                parse_jira_datetime(f.get("updated")),
                 f["issuetype"]["name"] if f.get("issuetype") else None,
                 f.get("customfield_23866"),
                 option(f.get("customfield_14267")),
@@ -146,7 +158,7 @@ def load_to_db(issues):
                 option(f.get("customfield_22361")),
                 option(f.get("customfield_22716")),
                 multi(f.get("customfield_10748")),
-                f.get("customfield_10076"),
+                parse_jira_datetime(f.get("customfield_10076")),
                 option(f.get("customfield_10190")),
                 option(f.get("customfield_23875")),
                 option(f.get("customfield_10007")),
@@ -159,7 +171,7 @@ def load_to_db(issues):
                 f.get("customfield_21161"),
                 f.get("customfield_21160"),
                 user(f.get("customfield_20760")),
-                f.get("resolutiondate"),
+                parse_jira_datetime(f.get("resolutiondate")),
                 f.get("customfield_10850"),
                 f.get("customfield_10851"),
                 option(f.get("customfield_29660")),

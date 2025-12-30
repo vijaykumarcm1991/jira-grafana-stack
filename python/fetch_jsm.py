@@ -36,6 +36,17 @@ FIELDS = [
 ]
 
 # ---------------- HELPERS ----------------
+
+def parse_jira_datetime(value):
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z") \
+            .astimezone(tz=None) \
+            .replace(tzinfo=None)
+    except Exception:
+        return None
+
 def cf_option(val):
     if isinstance(val, dict):
         return val.get("value")
@@ -115,9 +126,9 @@ def load_to_db(issues):
                 f.get("summary"),
                 f.get("customfield_10123"),
                 cf_user(f.get("assignee")),
-                f.get("created"),
-                f.get("resolutiondate"),
-                f.get("updated"),
+                parse_jira_datetime(f.get("created")),
+                parse_jira_datetime(f.get("resolutiondate")),
+                parse_jira_datetime(f.get("updated")),
                 f.get("customfield_10131"),
                 cf_option(f.get("customfield_10126")),
                 cf_option(f.get("customfield_10127")),
@@ -126,10 +137,10 @@ def load_to_db(issues):
                 cf_option(f.get("customfield_10133")),
                 f.get("customfield_10134"),
                 f.get("aggregatetimespent"),
-                f.get("customfield_10701"),
-                f.get("customfield_10300"),
-                f.get("customfield_10801"),
-                f.get("customfield_10301"),
+                parse_jira_datetime(f.get("customfield_10701")),
+                parse_jira_datetime(f.get("customfield_10300"))
+                parse_jira_datetime(f.get("customfield_10801")),
+                parse_jira_datetime(f.get("customfield_10301")),
                 f.get("customfield_10147"),
                 f.get("customfield_10145"),
                 cf_option(f.get("customfield_10143")),
@@ -144,8 +155,8 @@ def load_to_db(issues):
                 cf_option(f.get("customfield_11402")),
                 cf_option(f.get("customfield_11405")),
                 cf_option(f.get("customfield_11404")),
-                f.get("customfield_11400"),
-                f.get("customfield_11401"),
+                parse_jira_datetime(f.get("customfield_11400")),
+                parse_jira_datetime(f.get("customfield_11401")),
                 cf_option(f.get("customfield_11406")),
                 cf_option(f.get("customfield_11500")),
                 datetime.utcnow()
