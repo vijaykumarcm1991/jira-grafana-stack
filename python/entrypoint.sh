@@ -1,21 +1,13 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-echo "Waiting for MySQL to be ready..."
+echo "Starting Jira Fetcher..."
 
-until mysqladmin ping -h"$DB_HOST" --silent; do
-  echo "MySQL not ready yet..."
-  sleep 5
-done
-
-echo "MySQL is ready. Starting Jira fetch loop..."
-
-while true
-do
-  echo "Fetching JSM data..."
+while true; do
+  echo "Running JSM fetch..."
   python fetch_jsm.py || echo "JSM fetch failed"
 
-  echo "Fetching JIRA data..."
+  echo "Running JIRA fetch..."
   python fetch_jira.py || echo "JIRA fetch failed"
 
   echo "Sleeping for 5 minutes..."
