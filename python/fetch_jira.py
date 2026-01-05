@@ -51,7 +51,7 @@ JIRA_USER = os.getenv("JIRA_USER")
 JIRA_PASS = os.getenv("JIRA_PASS")
 
 JQL = "filter = NOC-6"
-MAX_RESULTS = 100
+MAX_RESULTS = 500
 
 # ---------------- FETCH ----------------
 def fetch_jira_issues():

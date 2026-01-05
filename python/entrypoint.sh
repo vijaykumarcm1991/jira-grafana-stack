@@ -10,6 +10,6 @@ while true; do
   echo "Running JIRA fetch..."
   python fetch_jira.py || echo "JIRA fetch failed"
 
-  echo "Sleeping for 5 minutes..."
-  sleep 300
+  echo "Sleeping for 60 Seconds..."
+  sleep 60
 done

@@ -49,7 +49,7 @@ HEADERS = {
 }
 
 JQL = 'issuetype = Incident AND status not in (Canceled, Cancelled, "Auto Resolved", Resolved)'
-MAX_RESULTS = 100
+MAX_RESULTS = 500
 
 # ---------------- FETCH ----------------
 def fetch_jsm_issues():
