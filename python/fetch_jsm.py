@@ -41,32 +41,69 @@ DB_CONFIG = {
 }
 
 JSM_BASE_URL = os.getenv("JSM_BASE_URL")
-JSM_PAT = os.getenv("JSM_PAT")
+JSM_USER = os.getenv("JSM_USER")        # email
+JSM_API_TOKEN = os.getenv("JSM_API_TOKEN")
 
-HEADERS = {
-    "Authorization": f"Bearer {JSM_PAT}",
-    "Accept": "application/json"
-}
+AUTH = (JSM_USER, JSM_API_TOKEN)
 
-JQL = 'issuetype = Incident AND status not in (Canceled, Cancelled, "Auto Resolved", Resolved)'
+JQL = 'project = NDCCLOUD'
 MAX_RESULTS = 500
 
 # ---------------- FETCH ----------------
 def fetch_jsm_issues():
-    issues, start = [], 0
+    issues = []
+    next_token = None
+    page = 1
+
     while True:
+        params = {
+            "jql": JQL,
+            "maxResults": 50,
+            "fields": "*all"
+        }
+
+        if next_token:
+            params["nextPageToken"] = next_token
+
+        print("\n==============================")
+        print(f"[PAGE {page}] Calling API...")
+        print("PARAMS:", params)
+        print("==============================")
+
         r = requests.get(
-            f"{JSM_BASE_URL}/rest/api/2/search",
-            headers=HEADERS,
-            params={"jql": JQL, "startAt": start, "maxResults": MAX_RESULTS},
+            f"{JSM_BASE_URL}/rest/api/3/search/jql",
+            auth=AUTH,
+            params=params,
             timeout=60
         )
-        r.raise_for_status()
+
+        print("STATUS CODE:", r.status_code)
+
+        if r.status_code != 200:
+            print("ERROR RESPONSE:", r.text)
+            r.raise_for_status()
+
         data = r.json()
-        issues.extend(data["issues"])
-        if start + MAX_RESULTS >= data["total"]:
+
+        batch = data.get("issues", [])
+        issues.extend(batch)
+
+        print("ISSUES THIS PAGE:", len(batch))
+        print("TOTAL COLLECTED:", len(issues))
+
+        if batch:
+            print("SAMPLE ISSUE:", batch[0].get("key"))
+
+        next_token = data.get("nextPageToken")
+
+        print("NEXT TOKEN:", next_token)
+
+        if not next_token:
+            print("No more pages. Done.")
             break
-        start += MAX_RESULTS
+
+        page += 1
+
     return issues
 
 # ---------------- LOAD ----------------
@@ -100,44 +137,44 @@ def load_to_db(issues):
         values = (
             i["key"],
             f["issuetype"]["name"] if f.get("issuetype") else None,
-            opt(f.get("customfield_10130")),
-            opt(f.get("customfield_10124")),
+            opt(f.get("customfield_10086")),
+            opt(f.get("customfield_10085")),
             f["status"]["name"] if f.get("status") else None,
             f["priority"]["name"] if f.get("priority") else None,
             f.get("summary"),
-            f.get("customfield_10123"),
+            f.get("customfield_10093"),
             usr(f.get("assignee")),
             parse_jira_datetime(f.get("created")),
             parse_jira_datetime(f.get("resolutiondate")),
             parse_jira_datetime(f.get("updated")),
-            f.get("customfield_10131"),
-            opt(f.get("customfield_10126")),
-            opt(f.get("customfield_10127")),
-            opt(f.get("customfield_10132")),
-            f.get("customfield_10125"),
-            opt(f.get("customfield_10133")),
-            f.get("customfield_10134"),
+            f.get("customfield_10092"),
+            opt(f.get("customfield_10097")),
+            opt(f.get("customfield_10091")),
+            opt(f.get("customfield_10099")),
+            f.get("customfield_10094"),
+            opt(f.get("customfield_10096")),
+            f.get("customfield_10098"),
             f.get("aggregatetimespent"),
-            parse_jira_datetime(f.get("customfield_10701")),
-            parse_jira_datetime(f.get("customfield_10300")),
-            parse_jira_datetime(f.get("customfield_10801")),
-            parse_jira_datetime(f.get("customfield_10301")),
-            f.get("customfield_10147"),
-            f.get("customfield_10145"),
-            opt(f.get("customfield_10143")),
-            opt(f.get("customfield_10146")),
-            opt(f.get("customfield_10148")),
-            opt(f.get("customfield_10803")),
-            opt(f.get("customfield_10806")),
-            opt(f.get("customfield_10804")),
-            opt(f.get("customfield_10112")),
-            f.get("customfield_11001"),
-            opt(f.get("customfield_11403")),
-            opt(f.get("customfield_11402")),
-            parse_jira_datetime(f.get("customfield_11400")),
-            parse_jira_datetime(f.get("customfield_11401")),
-            opt(f.get("customfield_11406")),
-            opt(f.get("customfield_11500")),
+            parse_jira_datetime(f.get("customfield_10142")),
+            parse_jira_datetime(f.get("customfield_10130")),
+            parse_jira_datetime(f.get("customfield_10144")),
+            parse_jira_datetime(f.get("customfield_10146")),
+            f.get("customfield_10157"),
+            f.get("customfield_10156"),
+            opt(f.get("customfield_10105")),
+            opt(f.get("customfield_10103")),
+            opt(f.get("customfield_10104")),
+            opt(f.get("customfield_10145")),
+            opt(f.get("customfield_10162")),
+            opt(f.get("customfield_10138")),
+            opt(f.get("customfield_10095")),
+            f.get("customfield_10102"),
+            opt(f.get("customfield_10108")),
+            opt(f.get("customfield_10106")),
+            parse_jira_datetime(f.get("customfield_10114")),
+            parse_jira_datetime(f.get("customfield_10115")),
+            opt(f.get("customfield_10113")),
+            opt(f.get("customfield_10118")),
             datetime.utcnow()
         )
 
